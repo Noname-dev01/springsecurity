@@ -1,11 +1,13 @@
 package io.security.basicsecurity;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -21,6 +23,8 @@ import java.io.IOException;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    @Autowired
+    UserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -68,7 +72,12 @@ public class SecurityConfig {
                         response.sendRedirect("/login");
                     }
                 }) //로그아웃 성공 후 핸들러
-                .deleteCookies("remember-me"); //로그아웃 후 쿠키 삭제
+//                .deleteCookies("remember-me") //로그아웃 후 쿠키 삭제
+                .and()
+                .rememberMe()
+                .rememberMeParameter("remember") //파라미터명 지정 (Default 파라미터명은 remember-me)
+                .tokenValiditySeconds(3600) //토큰 만료 기한 설정,Default는 14일
+                .userDetailsService(userDetailsService); //remember-me 기능을 사용하기 위한 필수 설정
 
         return http.build();
     }
